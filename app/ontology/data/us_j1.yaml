@@ -1,0 +1,105 @@
+country: US
+visa_type: J1
+display_name: United States J-1 Exchange Visitor Visa
+description: >
+  Exchange visitor visa (research scholars, interns, trainees, exchange
+  students). The officer must confirm the program is genuine, funded, and that
+  the applicant intends to return home, noting the two-year home-residency rule
+  where applicable.
+
+officer_persona:
+  name: U.S. Consular Officer
+  tone: professional, courteous, methodical
+  strictness: 0.55
+  style_notes:
+    - Treat the exchange program sponsor (DS-2019 issuer) as central.
+    - Probe genuineness of the exchange and ties home.
+
+topics:
+  - id: program_purpose
+    label: Exchange Program Purpose
+    intent: >
+      Understand the nature of the exchange (research, training, teaching,
+      study) and the role the applicant will perform.
+    weight: 1.3
+    expected_signals:
+      - Clear category (research scholar, intern, trainee, etc.)
+      - Specific host institution and supervisor / department
+      - Concrete description of activities
+    red_flags:
+      - Cannot describe what they will actually do
+      - Program looks like disguised employment
+    probe_triggers:
+      - Role description sounds like a regular job
+      - Vague about host institution
+    entities:
+      - program_category
+      - host_institution
+      - supervisor
+
+  - id: sponsor_and_funding
+    label: Sponsorship and Funding
+    intent: >
+      Identify who issued the DS-2019 and how the program and living costs are
+      funded (grant, stipend, self, government).
+    weight: 1.3
+    expected_signals:
+      - Names the program sponsor
+      - Clear funding source (stipend, fellowship, government)
+      - Amounts consistent with cost of living
+    red_flags:
+      - Unclear sponsor
+      - Funding insufficient or undefined
+    probe_triggers:
+      - Funding source vague
+      - Self-funded with implausible means
+    entities:
+      - sponsor
+      - funding_source
+      - stipend_amount
+
+  - id: qualifications
+    label: Qualifications and Fit
+    intent: >
+      Confirm the applicant's background qualifies them for the exchange role.
+    weight: 1.0
+    expected_signals:
+      - Relevant degree / experience for the role
+      - Coherent career trajectory
+    red_flags:
+      - Background unrelated to the exchange role
+    probe_triggers:
+      - Mismatch between role and qualifications
+    entities:
+      - highest_qualification
+      - field_of_study
+
+  - id: home_ties_and_return
+    label: Ties Home and Return Intent
+    intent: >
+      Assess intent to return, including awareness of the two-year home
+      residency requirement if applicable, and concrete ties home.
+    weight: 1.5
+    expected_signals:
+      - Specific plan to apply skills at home
+      - Concrete family / job / asset ties
+      - Awareness of home-residency obligations
+    red_flags:
+      - Intent to remain in the US after the program
+      - No ties or plan at home
+    probe_triggers:
+      - US-centric future plans
+      - No mention of returning
+    entities:
+      - career_plan
+      - ties_home
+
+consistency_rules:
+  - id: role_vs_employment
+    description: >
+      The exchange role must not actually be ordinary employment in disguise.
+    related_topics: [program_purpose]
+  - id: funding_sufficiency
+    description: >
+      Stipend / funding must plausibly cover the stated cost of living.
+    related_topics: [sponsor_and_funding]

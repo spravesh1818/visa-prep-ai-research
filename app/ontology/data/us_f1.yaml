@@ -1,0 +1,147 @@
+country: US
+visa_type: F1
+display_name: United States F-1 Student Visa
+description: >
+  Academic student visa. The officer must establish that the applicant is a
+  genuine student, has the means to pay, and has strong ties / intent to return
+  home after studies (non-immigrant intent).
+
+officer_persona:
+  name: U.S. Consular Officer
+  tone: professional, brisk, courteous, quietly skeptical
+  strictness: 0.6
+  style_notes:
+    - Keep questions short and conversational, the way a real visa window feels.
+    - Do not read from a script; react to what the applicant just said.
+    - Occasionally acknowledge the answer before moving on.
+
+topics:
+  - id: study_program
+    label: Program of Study
+    intent: >
+      Understand what the applicant will study, the degree level, and whether
+      they can articulate the program clearly and specifically.
+    weight: 1.2
+    expected_signals:
+      - Specific degree, major, and field of study
+      - Clear reason for choosing this particular program
+      - Awareness of program length and structure
+    red_flags:
+      - Vague or generic description of the program
+      - Cannot name the degree or field
+      - Mismatch between stated program and academic background
+    probe_triggers:
+      - Applicant is vague about what they will actually study
+      - The chosen field seems unrelated to prior education or work
+    entities:
+      - program_name
+      - degree_level
+      - field_of_study
+
+  - id: university_choice
+    label: University Selection
+    intent: >
+      Identify which university admitted the applicant and why they chose it
+      over alternatives. The named institution will be credibility-checked.
+    weight: 1.3
+    expected_signals:
+      - Names a specific, real university
+      - Concrete reasons (faculty, ranking, curriculum, location, funding)
+      - Mentions other schools they applied to / were admitted to
+    red_flags:
+      - Cannot name the university confidently
+      - Chose the school only because it was easy to get into or cheap
+      - Reasons are purely about immigration, not education
+    probe_triggers:
+      - Only one obscure school applied to
+      - Reasoning is shallow or immigration-focused
+    entities:
+      - university
+      - city
+      - other_universities_applied
+
+  - id: academic_background
+    label: Academic Background
+    intent: >
+      Confirm the applicant's prior education and that this new program is a
+      logical next step in their academic trajectory.
+    weight: 1.0
+    expected_signals:
+      - Coherent prior education history
+      - Grades / scores consistent with admission
+      - Logical progression to the new program
+    red_flags:
+      - Long unexplained gaps in education
+      - Prior field totally unrelated with no rationale
+      - Weak academics inconsistent with claimed admission
+    probe_triggers:
+      - Unexplained education or employment gap
+      - Sudden change of field without explanation
+    entities:
+      - highest_qualification
+      - gpa_or_scores
+      - graduation_year
+
+  - id: financial_capacity
+    label: Financial Capacity
+    intent: >
+      Establish that the applicant can pay tuition and living costs, who is
+      sponsoring them, and that the funding source is genuine and sufficient.
+    weight: 1.4
+    expected_signals:
+      - Clear total cost awareness (tuition + living)
+      - Identified, plausible sponsor with sufficient income/savings
+      - Funding source matches sponsor's occupation
+    red_flags:
+      - Cannot state the cost of the program
+      - Sponsor income implausible for the amount required
+      - Recently inflated bank balances or unclear source of funds
+      - Loan amounts that do not cover the cost
+    probe_triggers:
+      - Sponsor's stated income seems too low for the cost
+      - Funding source is vague ("family will manage")
+    entities:
+      - sponsor
+      - sponsor_occupation
+      - annual_income
+      - funding_source
+      - total_cost
+
+  - id: post_study_intent
+    label: Post-Study Plans and Ties Home
+    intent: >
+      Assess non-immigrant intent: whether the applicant plans to return home,
+      and what concrete ties (career, family, assets) pull them back.
+    weight: 1.5
+    expected_signals:
+      - Specific career plans in the home country
+      - Concrete family / economic / property ties at home
+      - Realistic view of opportunities back home using the degree
+    red_flags:
+      - Expresses desire to settle / work permanently in the US
+      - No plan beyond graduation
+      - Says relatives in the US will help them stay
+    probe_triggers:
+      - Plans are vague or US-centric
+      - Mentions US-based relatives prominently
+    entities:
+      - career_plan
+      - ties_home
+      - relatives_in_us
+
+consistency_rules:
+  - id: funding_vs_sponsor
+    description: >
+      The claimed funding amount must be plausible given the sponsor's stated
+      occupation and income. Flag if a modest income covers very high costs.
+    related_topics: [financial_capacity]
+  - id: program_vs_background
+    description: >
+      The chosen program should be consistent with the applicant's academic
+      background, or have a credible explanation for the switch.
+    related_topics: [study_program, academic_background]
+  - id: intent_vs_relatives
+    description: >
+      Strong stated ties home conflict with heavy emphasis on relatives in the
+      US; flag potential immigrant intent.
+    related_topics: [post_study_intent]

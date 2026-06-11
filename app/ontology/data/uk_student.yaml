@@ -1,0 +1,132 @@
+country: UK
+visa_type: Student
+display_name: United Kingdom Student Visa (Route)
+description: >
+  UK Student visa (formerly Tier 4). The credibility interview must establish a
+  genuine student with a valid CAS from a licensed sponsor, ability to meet
+  financial requirements, English ability, and credible study and post-study
+  intentions.
+
+officer_persona:
+  name: UK Visa Officer
+  tone: polite, thorough, focused on genuineness
+  strictness: 0.6
+  style_notes:
+    - This is a "genuine student" credibility interview.
+    - Probe course knowledge, finances, and why the UK / this provider.
+
+topics:
+  - id: course_and_provider
+    label: Course and Education Provider
+    intent: >
+      Confirm the specific course, level, and the licensed sponsor that issued
+      the CAS, and that the applicant understands the course content.
+    weight: 1.3
+    expected_signals:
+      - Specific course title, level, and provider
+      - Understanding of modules / structure / duration
+      - Mentions the CAS / offer
+    red_flags:
+      - Cannot describe the course or provider
+      - Course unrelated to background with no rationale
+    probe_triggers:
+      - Vague about course content
+      - Unaware of provider details
+    entities:
+      - course_name
+      - level
+      - university
+      - provider_city
+
+  - id: why_uk
+    label: Why the UK and This Provider
+    intent: >
+      Understand the rationale for choosing the UK and this institution over
+      home-country or other options.
+    weight: 1.1
+    expected_signals:
+      - Concrete academic / career reasons
+      - Comparison to alternatives considered
+    red_flags:
+      - Reasons centered on working or staying, not studying
+      - No real comparison or rationale
+    probe_triggers:
+      - Immigration-focused reasoning
+    entities:
+      - reasons
+      - other_options_considered
+
+  - id: finances
+    label: Financial Requirement
+    intent: >
+      Confirm the applicant can meet tuition and the prescribed maintenance
+      funds, and identify a genuine funding source.
+    weight: 1.4
+    expected_signals:
+      - Awareness of tuition and maintenance amounts
+      - Genuine, documented funding source held for the required period
+      - Plausible sponsor income
+    red_flags:
+      - Unaware of required funds
+      - Funds recently deposited from unclear source
+      - Sponsor income implausible
+    probe_triggers:
+      - Funding source vague
+      - Maintenance funds not clearly held
+    entities:
+      - sponsor
+      - funding_source
+      - tuition_fee
+      - maintenance_funds
+
+  - id: english_ability
+    label: English Language Ability
+    intent: >
+      Assess the applicant's English proficiency, consistent with the course
+      requirements and any test taken.
+    weight: 1.0
+    expected_signals:
+      - Coherent, fluent responses
+      - Valid English test consistent with course
+    red_flags:
+      - Responses inconsistent with claimed test scores
+      - Cannot communicate at the required level
+    probe_triggers:
+      - Fluency inconsistent with claimed score
+    entities:
+      - english_test
+      - test_score
+
+  - id: post_study_plans
+    label: Post-Study Intentions
+    intent: >
+      Assess credible intentions after the course, including plans to return or
+      lawful next steps, and ties to the home country.
+    weight: 1.3
+    expected_signals:
+      - Specific career plan using the qualification
+      - Ties home or a lawful, credible route
+    red_flags:
+      - Intent to remain unlawfully
+      - No plan beyond the course
+    probe_triggers:
+      - Vague or unlawful intent
+    entities:
+      - career_plan
+      - ties_home
+
+consistency_rules:
+  - id: finances_vs_sponsor
+    description: >
+      Funding must be plausible given the sponsor's stated income, and held for
+      the required period.
+    related_topics: [finances]
+  - id: english_vs_fluency
+    description: >
+      Demonstrated fluency should match the claimed English test scores.
+    related_topics: [english_ability]
+  - id: course_vs_background
+    description: >
+      The chosen course should align with the applicant's background or have a
+      credible explanation.
+    related_topics: [course_and_provider]

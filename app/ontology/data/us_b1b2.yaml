@@ -1,0 +1,105 @@
+country: US
+visa_type: B1B2
+display_name: United States B-1/B-2 Visitor Visa
+description: >
+  Temporary visitor for business (B-1) or tourism / medical treatment (B-2).
+  The officer must confirm a genuine, temporary purpose, sufficient funds, and
+  strong ties that ensure the visitor will leave the US.
+
+officer_persona:
+  name: U.S. Consular Officer
+  tone: brisk, polite, efficient
+  strictness: 0.6
+  style_notes:
+    - Visitor interviews are short; keep questions crisp.
+    - Focus on purpose, funding, and ties home.
+
+topics:
+  - id: purpose_of_trip
+    label: Purpose of Travel
+    intent: >
+      Establish the specific reason for the visit and that it fits a temporary
+      visitor category (tourism, business meeting, conference, medical, family
+      visit).
+    weight: 1.3
+    expected_signals:
+      - Specific, plausible purpose with dates
+      - Clear itinerary or business agenda
+    red_flags:
+      - Vague purpose ("just to see America")
+      - Purpose resembles work or long-term stay
+    probe_triggers:
+      - Cannot explain what they will do day to day
+      - Open-ended trip with no return plan
+    entities:
+      - trip_purpose
+      - trip_duration
+      - destination_city
+
+  - id: funding
+    label: Trip Funding
+    intent: >
+      Confirm who pays for the trip and that funds are sufficient and genuine.
+    weight: 1.1
+    expected_signals:
+      - Clear payer (self, employer, host)
+      - Funds proportional to the trip
+    red_flags:
+      - Cannot say who pays
+      - Funds clearly insufficient
+    probe_triggers:
+      - Sponsor relationship unclear
+    entities:
+      - who_pays
+      - estimated_budget
+
+  - id: ties_home
+    label: Ties to Home Country
+    intent: >
+      Assess employment, family, and assets that compel the visitor to return.
+    weight: 1.5
+    expected_signals:
+      - Stable job / business to return to
+      - Immediate family remaining at home
+      - Property or other binding commitments
+    red_flags:
+      - No job, no family ties, no assets
+      - Recently quit job before traveling
+      - Most close family already in the US
+    probe_triggers:
+      - Weak or absent ties
+      - Whole family traveling with no return anchor
+    entities:
+      - occupation
+      - family_at_home
+      - assets
+
+  - id: travel_history
+    label: Travel and Immigration History
+    intent: >
+      Review prior international travel and compliance with past visas.
+    weight: 1.0
+    expected_signals:
+      - Prior travel with timely returns
+      - No overstays or visa violations
+    red_flags:
+      - Previous overstay or refusal not disclosed
+      - No travel history with weak ties
+    probe_triggers:
+      - Past visa refusals
+      - Prior overstay
+    entities:
+      - prior_travel
+      - prior_refusals
+
+consistency_rules:
+  - id: purpose_vs_duration
+    description: >
+      Trip duration should match the stated purpose; a short tourism purpose
+      with an open-ended stay is suspicious.
+    related_topics: [purpose_of_trip]
+  - id: ties_vs_family_location
+    description: >
+      Strong ties home conflict with most immediate family already living in
+      the US.
+    related_topics: [ties_home]

@@ -1,0 +1,68 @@
+{
+  "_meta": {
+    "description": "Hand-curated tier overrides applied on top of the bulk-imported registry by scripts/build_universities.py. Only schools needing a non-default tier (top/high/mid/low/diploma_mill) belong here; everything else stays 'recognized'.",
+    "tiers": ["top", "high", "mid", "low", "diploma_mill"]
+  },
+  "overrides": [
+    { "name": "Massachusetts Institute of Technology", "country": "US", "tier": "top", "aliases": ["MIT"] },
+    { "name": "Stanford University", "country": "US", "tier": "top", "aliases": ["Stanford"] },
+    { "name": "Harvard University", "country": "US", "tier": "top", "aliases": ["Harvard"] },
+    { "name": "California Institute of Technology", "country": "US", "tier": "top", "aliases": ["Caltech"] },
+    { "name": "Princeton University", "country": "US", "tier": "top", "aliases": ["Princeton"] },
+    { "name": "Yale University", "country": "US", "tier": "top", "aliases": ["Yale"] },
+    { "name": "University of California, Berkeley", "country": "US", "tier": "top", "aliases": ["UC Berkeley", "Berkeley", "Cal"] },
+    { "name": "Columbia University", "country": "US", "tier": "top", "aliases": ["Columbia"] },
+    { "name": "University of Chicago", "country": "US", "tier": "top", "aliases": ["UChicago"] },
+    { "name": "Carnegie Mellon University", "country": "US", "tier": "top", "aliases": ["CMU"] },
+
+    { "name": "University of California, Los Angeles", "country": "US", "tier": "high", "aliases": ["UCLA"] },
+    { "name": "University of Michigan", "country": "US", "tier": "high", "aliases": ["UMich", "Ann Arbor"] },
+    { "name": "University of Illinois Urbana-Champaign", "country": "US", "tier": "high", "aliases": ["UIUC", "Illinois"] },
+    { "name": "University of Texas at Austin", "country": "US", "tier": "high", "aliases": ["UT Austin"] },
+    { "name": "University of Washington", "country": "US", "tier": "high", "aliases": ["UW", "UDub"] },
+    { "name": "Georgia Institute of Technology", "country": "US", "tier": "high", "aliases": ["Georgia Tech"] },
+    { "name": "New York University", "country": "US", "tier": "high", "aliases": ["NYU"] },
+    { "name": "University of Wisconsin-Madison", "country": "US", "tier": "high", "aliases": ["UW Madison"] },
+    { "name": "Purdue University", "country": "US", "tier": "high", "aliases": ["Purdue"] },
+    { "name": "Boston University", "country": "US", "tier": "high", "aliases": ["BU"] },
+
+    { "name": "Arizona State University", "country": "US", "tier": "mid", "aliases": ["ASU"] },
+    { "name": "University of Arizona", "country": "US", "tier": "mid", "aliases": ["U of A"] },
+    { "name": "University of Cincinnati", "country": "US", "tier": "mid", "aliases": [] },
+    { "name": "University of Central Florida", "country": "US", "tier": "mid", "aliases": ["UCF"] },
+    { "name": "San Jose State University", "country": "US", "tier": "mid", "aliases": ["SJSU"] },
+    { "name": "University of Texas at Arlington", "country": "US", "tier": "mid", "aliases": ["UTA"] },
+    { "name": "Northeastern University", "country": "US", "tier": "mid", "aliases": ["Northeastern"] },
+    { "name": "DePaul University", "country": "US", "tier": "mid", "aliases": ["DePaul"] },
+
+    { "name": "Silicon Valley University", "country": "US", "tier": "low", "aliases": ["SVU"] },
+    { "name": "International Technological University", "country": "US", "tier": "low", "aliases": ["ITU"] },
+    { "name": "Stratford University", "country": "US", "tier": "low", "aliases": [] },
+
+    { "name": "University of Northern New Jersey", "country": "US", "tier": "diploma_mill", "aliases": ["UNNJ"] },
+    { "name": "Tri-Valley University", "country": "US", "tier": "diploma_mill", "aliases": [] },
+    { "name": "Farmington University", "country": "US", "tier": "diploma_mill", "aliases": ["University of Farmington"] },
+
+    { "name": "University of Oxford", "country": "UK", "tier": "top", "aliases": ["Oxford"] },
+    { "name": "University of Cambridge", "country": "UK", "tier": "top", "aliases": ["Cambridge"] },
+    { "name": "Imperial College London", "country": "UK", "tier": "top", "aliases": ["Imperial"] },
+    { "name": "University College London", "country": "UK", "tier": "top", "aliases": ["UCL"] },
+    { "name": "London School of Economics and Political Science", "country": "UK", "tier": "top", "aliases": ["LSE"] },
+
+    { "name": "University of Edinburgh", "country": "UK", "tier": "high", "aliases": ["Edinburgh"] },
+    { "name": "University of Manchester", "country": "UK", "tier": "high", "aliases": ["Manchester"] },
+    { "name": "King's College London", "country": "UK", "tier": "high", "aliases": ["KCL", "Kings College"] },
+    { "name": "University of Warwick", "country": "UK", "tier": "high", "aliases": ["Warwick"] },
+    { "name": "University of Bristol", "country": "UK", "tier": "high", "aliases": ["Bristol"] },
+    { "name": "University of Glasgow", "country": "UK", "tier": "high", "aliases": ["Glasgow"] },
+
+    { "name": "University of Leicester", "country": "UK", "tier": "mid", "aliases": ["Leicester"] },
+    { "name": "University of Surrey", "country": "UK", "tier": "mid", "aliases": ["Surrey"] },
+    { "name": "Coventry University", "country": "UK", "tier": "mid", "aliases": ["Coventry"] },
+    { "name": "University of Hertfordshire", "country": "UK", "tier": "mid", "aliases": ["Hertfordshire"] },
+    { "name": "Middlesex University", "country": "UK", "tier": "mid", "aliases": ["Middlesex"] },
+
+    { "name": "University of Bedfordshire", "country": "UK", "tier": "low", "aliases": ["Bedfordshire"] },
+    { "name": "London Metropolitan University", "country": "UK", "tier": "low", "aliases": ["London Met"] }
+  ]
+}

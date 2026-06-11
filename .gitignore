@@ -1,0 +1,26 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Local secrets / config
+.env
+
+# Session persistence (SQLite checkpointer)
+*.db
+*.db-shm
+*.db-wal
+
+# Test / tooling caches
+.pytest_cache/
+
+# Frontend (Vite + React)
+frontend/node_modules/
+frontend/dist/
+frontend/.env
