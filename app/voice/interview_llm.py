@@ -35,13 +35,17 @@ def _message_text(item: Any) -> str:
     return ""
 
 
-def _latest_user_text(chat_ctx: llm.ChatContext) -> str:
+def _accumulated_user_turn_text(chat_ctx: llm.ChatContext) -> str:
+    """Join all user messages since the last assistant turn (safety net for STT chunks)."""
+    parts: list[str] = []
     for item in reversed(list(chat_ctx.items)):
         if getattr(item, "role", None) == "user":
             txt = _message_text(item).strip()
             if txt:
-                return txt
-    return ""
+                parts.append(txt)
+        elif getattr(item, "role", None) == "assistant":
+            break
+    return " ".join(reversed(parts)).strip()
 
 
 class _InterviewLLMStream(llm.LLMStream):
@@ -52,9 +56,11 @@ class _InterviewLLMStream(llm.LLMStream):
         self._interview_llm = interview_llm
 
     async def _run(self) -> None:
-        user_text = _latest_user_text(self._chat_ctx)
+        user_text = _accumulated_user_turn_text(self._chat_ctx)
         if not user_text:
             return
+
+        logger.info("Applicant turn (stitched): %s", user_text)
 
         try:
             turn = await asyncio.to_thread(

@@ -17,13 +17,17 @@ import asyncio
 import json
 import logging
 import random
+import time
 
 from livekit.agents import Agent, AgentSession, JobContext, WorkerOptions, cli
 from livekit.agents import tts as tts_base
+from livekit.agents.voice.turn import TurnHandlingOptions
 from livekit.plugins import cartesia, deepgram, elevenlabs, openai, silero
 
 from app.api import service
 from app.config import get_settings
+from app.observability import configure_langsmith
+from app.voice.cost import compute_voice_costs, push_voice_costs_to_langsmith
 from app.voice.interview_llm import InterviewLLM
 
 logger = logging.getLogger("visa-voice-agent")
@@ -31,7 +35,13 @@ logger = logging.getLogger("visa-voice-agent")
 
 def _build_stt() -> deepgram.STT:
     settings = get_settings()
-    kwargs = {"model": settings.deepgram_model}
+    kwargs = {
+        "model": settings.deepgram_model,
+        "endpointing_ms": settings.deepgram_endpointing_ms,
+        "smart_format": True,
+        "punctuate": True,
+        "filler_words": True,
+    }
     if settings.deepgram_api_key:
         kwargs["api_key"] = settings.deepgram_api_key
     return deepgram.STT(**kwargs)
@@ -95,7 +105,9 @@ def _build_tts(country: str) -> tts_base.TTS:
 
 
 async def entrypoint(ctx: JobContext) -> None:
+    configure_langsmith()
     settings = get_settings()
+    started_at = time.monotonic()
     await ctx.connect()
 
     participant = await ctx.wait_for_participant()
@@ -125,7 +137,31 @@ async def entrypoint(ctx: JobContext) -> None:
         stt=_build_stt(),
         llm=InterviewLLM(session_id),
         tts=_build_tts(country),
+        turn_handling=TurnHandlingOptions(
+            endpointing={
+                "mode": "fixed",
+                "min_delay": settings.voice_min_endpointing_delay,
+                "max_delay": settings.voice_max_endpointing_delay,
+            },
+            preemptive_generation={"enabled": False},
+        ),
     )
+
+    async def _emit_costs(_reason: str = "") -> None:
+        duration = time.monotonic() - started_at
+        breakdown = compute_voice_costs(session_id, session.usage, duration)
+        await asyncio.to_thread(push_voice_costs_to_langsmith, breakdown)
+        logger.info(
+            "Interview cost (voice infra): stt=$%.4f tts=$%.4f livekit=$%.4f "
+            "total_voice=$%.4f session=%s",
+            breakdown.stt_usd,
+            breakdown.tts_usd,
+            breakdown.livekit_usd,
+            breakdown.voice_infra_usd,
+            session_id,
+        )
+
+    ctx.add_shutdown_callback(_emit_costs)
 
     # Instructions are unused for text generation (InterviewLLM drives content),
     # but the Agent object is required by the session.

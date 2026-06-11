@@ -3,28 +3,18 @@
 from __future__ import annotations
 
 import logging
-import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router
 from app.config import get_settings
-
-
-def _configure_observability() -> None:
-    """Enable LangSmith tracing if requested (purely opt-in via env)."""
-
-    settings = get_settings()
-    if settings.langsmith_tracing and settings.langsmith_api_key:
-        os.environ["LANGCHAIN_TRACING_V2"] = "true"
-        os.environ["LANGCHAIN_API_KEY"] = settings.langsmith_api_key
-        os.environ["LANGCHAIN_PROJECT"] = settings.langsmith_project
+from app.observability import configure_langsmith
 
 
 def create_app() -> FastAPI:
     logging.basicConfig(level=logging.INFO)
-    _configure_observability()
+    configure_langsmith()
 
     app = FastAPI(
         title="Ontology-Driven Visa Interviewer",

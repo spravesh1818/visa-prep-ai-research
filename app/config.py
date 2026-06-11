@@ -77,6 +77,9 @@ class Settings(BaseSettings):
     livekit_api_secret: Optional[str] = None
     deepgram_api_key: Optional[str] = None
     deepgram_model: str = "nova-3"
+    deepgram_endpointing_ms: int = Field(default=400, ge=0)
+    voice_min_endpointing_delay: float = Field(default=1.2, ge=0.0)
+    voice_max_endpointing_delay: float = Field(default=6.0, ge=0.0)
     elevenlabs_api_key: Optional[str] = None
     elevenlabs_voice_id: Optional[str] = None
     elevenlabs_model: str = "eleven_turbo_v2_5"
@@ -105,6 +108,10 @@ class Settings(BaseSettings):
     langsmith_tracing: bool = False
     langsmith_api_key: Optional[str] = None
     langsmith_project: str = "visa-interviewer"
+    # Estimated USD rates for voice infra (calibrate against provider invoices).
+    cost_deepgram_stt_usd_per_min: float = 0.0048
+    cost_cartesia_tts_usd_per_min: float = 0.05
+    cost_livekit_agent_usd_per_min: float = 0.01
 
     # --- HTTP server -------------------------------------------------------
     api_host: str = "0.0.0.0"

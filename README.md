@@ -126,7 +126,21 @@ Key settings (see `.env.example` for all):
 - `LLM_MODEL`, `LLM_TEMPERATURE`, optional per-role `INTERVIEWER_*` / `EVALUATOR_*`
 - `CHECKPOINTER_BACKEND` = `sqlite` (default) | `memory`
 - `MAX_PROBES_PER_TOPIC`
-- `REPORT_WEBHOOK_URL`, `LANGSMITH_TRACING`
+- `REPORT_WEBHOOK_URL`, `LANGSMITH_TRACING`, `COST_*` voice infra rates
+
+### Per-interview cost in LangSmith
+
+Enable `LANGSMITH_TRACING=true` and `LANGSMITH_API_KEY` in `.env`, then restart the
+API and voice worker. Each interview's `session_id` is the LangSmith **thread id**.
+
+1. Open [LangSmith](https://smith.langchain.com) → project `visa-interviewer` → **Threads**.
+2. Select the thread matching your interview `session_id`.
+3. **LLM cost** is traced automatically from LangGraph.
+4. **Voice infra** (Deepgram STT, Cartesia TTS, LiveKit minutes) is estimated at
+   session shutdown and pushed as `interview_voice_cost` runs on the same thread.
+
+Tune `COST_DEEPGRAM_STT_USD_PER_MIN`, `COST_CARTESIA_TTS_USD_PER_MIN`, and
+`COST_LIVEKIT_AGENT_USD_PER_MIN` against your provider invoices.
 
 > `memory` checkpointer is dev-only (not shared across uvicorn workers). Use
 > `sqlite` for a single worker, or swap in `PostgresSaver` for multi-worker
