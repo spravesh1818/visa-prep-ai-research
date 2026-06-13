@@ -6,6 +6,8 @@ description: >
   The officer must confirm a genuine, temporary purpose, sufficient funds, and
   strong ties that ensure the visitor will leave the US.
 
+timezone: Asia/Kathmandu
+
 officer_persona:
   name: U.S. Consular Officer
   tone: brisk, polite, efficient

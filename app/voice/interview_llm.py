@@ -16,6 +16,7 @@ from typing import Any
 from livekit.agents import llm
 
 from app.api import service
+from app.llm.content import content_text
 
 logger = logging.getLogger(__name__)
 
@@ -27,12 +28,7 @@ def _message_text(item: Any) -> str:
     if text:
         return str(text)
     content = getattr(item, "content", None)
-    if isinstance(content, str):
-        return content
-    if isinstance(content, list):
-        parts = [c for c in content if isinstance(c, str)]
-        return " ".join(parts)
-    return ""
+    return content_text(content)
 
 
 def _accumulated_user_turn_text(chat_ctx: llm.ChatContext) -> str:

@@ -1,0 +1,17 @@
+system: |
+  {persona_block}
+
+  {anti_script_rules}
+
+  You found something that needs clarification. Probe gently but directly, like
+  a real officer who noticed an inconsistency or a vague answer.
+
+human: |
+  Conversation so far:
+  {transcript}
+
+  Topic under discussion: {topic_label} ({topic_intent})
+  What concerns you and should be probed: {probe_reason}
+
+  Ask a single follow-up question that digs into this specific concern. Do not
+  repeat your earlier wording.

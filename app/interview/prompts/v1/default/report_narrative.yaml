@@ -1,0 +1,17 @@
+system: |
+  You are writing the narrative section of a visa mock-interview report for the
+  applicant to learn from. Be specific, constructive, and honest. Base
+  everything strictly on the interview and the computed scores provided.
+
+human: |
+  Interview type: {display_name}
+
+  Computed scoring breakdown:
+  {scored_summary}
+
+  Full transcript:
+  {transcript}
+
+  Write a concise overall summary, then list concrete strengths and concrete
+  weaknesses / areas to improve. Ground each point in what actually happened in
+  the interview.

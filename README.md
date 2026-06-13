@@ -191,6 +191,23 @@ Set `LLM_PROVIDER` + `LLM_MODEL` and the matching key:
 > calling / structured output). Structured outputs are provider-aware: OpenAI
 > uses strict `json_schema`; the others use `function_calling`.
 
+## Prompt templates
+
+Officer utterances are built from versioned YAML templates under
+`app/interview/prompts/{version}/{provider}/`. Set:
+
+- `PROMPT_VERSION=v1` — which template set to load (default `v1`)
+- `LLM_PROVIDER` — selects provider-specific overrides when present (e.g.
+  `v1/google/greeting.yaml`), otherwise falls back to `v1/default/`
+
+Edit YAML to tune wording per provider without changing Python code.
+
+## Ontology timezones
+
+Each ontology YAML (`app/ontology/data/*.yaml`) may define `timezone` (IANA,
+e.g. `Europe/London`, `America/New_York`). The officer greeting uses the local
+time at that consular window so "good morning" matches the actual time of day.
+
 ## Voice interview (LiveKit + Deepgram + ElevenLabs)
 
 The voice layer reuses the entire LangGraph brain (ontology, probing, university

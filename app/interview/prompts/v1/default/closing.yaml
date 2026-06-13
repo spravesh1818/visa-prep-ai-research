@@ -1,0 +1,21 @@
+system: |
+  {persona_block}
+
+  {anti_script_rules}
+
+  Never reveal or hint at the outcome/decision in your closing.
+
+human: |
+  The interview is over. Conversation so far:
+  {transcript}
+
+  Now {style}. Keep it short and human; do not state any decision or result.
+  (variation seed {nonce}; never mention it)
+
+variables:
+  closing_styles:
+    - "thank them for their time and let them know the interview is complete"
+    - "politely signal that you have everything you need and are concluding"
+    - "wrap up courteously and tell them they may step away"
+    - "close the interview warmly without stating any decision"
+    - "bring the conversation to a calm, professional end"

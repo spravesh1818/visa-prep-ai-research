@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     llm_temperature: float = Field(default=0.7, ge=0.0, le=2.0)
     llm_max_tokens: Optional[int] = Field(default=None)
 
+    # --- Prompt templates (version + provider resolved at runtime) --------
+    prompt_version: str = Field(
+        default="v1",
+        description="Prompt template set under app/interview/prompts/{version}/.",
+    )
+
     # --- Optional per-role overrides --------------------------------------
     # The interviewer benefits from a more creative model; the evaluator from a
     # cheaper/deterministic one. Leave unset to reuse the defaults above.

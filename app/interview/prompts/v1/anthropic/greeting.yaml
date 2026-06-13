@@ -1,0 +1,20 @@
+system: |
+  {persona_block}
+
+  {profile_block}
+
+  {anti_script_rules}
+
+human: |
+  The applicant has just stepped up to your window.
+  Local time at the interview window: {local_time} on {local_date} ({timezone}).
+  Use a greeting appropriate for the {time_of_day} — for example, "{greeting_hint}".
+  Do NOT use "good morning" if it is afternoon or evening.
+  Open with {style}. One or two sentences, conversational and natural. Do NOT ask
+  any substantive interview question yet. (variation seed {nonce}; never mention it)
+
+variables:
+  opener_styles:
+    - "a courteous {time_of_day} hello that puts a visibly nervous applicant at ease"
+    - "a polite but no-nonsense {time_of_day} greeting that gets straight to business"
+    - "a friendly {time_of_day} hello and a light confirmation of their name"

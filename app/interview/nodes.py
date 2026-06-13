@@ -26,7 +26,7 @@ from app.interview.report import (
 from app.interview.scoring import compute_scores, render_scored_summary
 from app.interview.state import InterviewState
 from app.knowledge.university_service import UniversityMatch, assess_university
-from app.llm import get_llm
+from app.llm import get_llm, llm_text
 from app.llm.factory import describe_active_llm, get_structured_llm
 from app.ontology import load_ontology
 from app.ontology.models import Ontology, Topic
@@ -80,9 +80,10 @@ def greet(state: InterviewState) -> dict[str, Any]:
             ontology.officer_persona,
             ontology.display_name,
             state.get("candidate_profile"),
+            timezone=ontology.timezone,
         )
     )
-    return {"messages": [AIMessage(content=msg.content)]}
+    return {"messages": [AIMessage(content=llm_text(msg))]}
 
 
 def ask_question(state: InterviewState) -> dict[str, Any]:
@@ -100,7 +101,7 @@ def ask_question(state: InterviewState) -> dict[str, Any]:
             state.get("candidate_profile"),
         )
     )
-    return {"messages": [AIMessage(content=msg.content)]}
+    return {"messages": [AIMessage(content=llm_text(msg))]}
 
 
 def await_answer(state: InterviewState) -> dict[str, Any]:
@@ -187,7 +188,7 @@ def probe(state: InterviewState) -> dict[str, Any]:
         )
     )
     return {
-        "messages": [AIMessage(content=msg.content)],
+        "messages": [AIMessage(content=llm_text(msg))],
         "probe_count": state.get("probe_count", 0) + 1,
     }
 
@@ -300,7 +301,7 @@ def _generate_closing(ontology: Ontology, messages: list[BaseMessage]) -> str:
                 ontology.officer_persona, ontology.display_name, messages
             )
         )
-        text = str(msg.content).strip()
+        text = llm_text(msg)
         if text:
             return text
     except Exception:  # pragma: no cover - defensive
@@ -320,5 +321,5 @@ def _render_transcript(messages: list[BaseMessage]) -> list[dict[str, str]]:
     transcript = []
     for m in messages:
         role = "officer" if m.type == "ai" else "applicant"
-        transcript.append({"role": role, "content": str(m.content)})
+        transcript.append({"role": role, "content": llm_text(m)})
     return transcript

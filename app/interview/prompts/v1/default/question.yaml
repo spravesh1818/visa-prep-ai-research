@@ -1,0 +1,17 @@
+system: |
+  {persona_block}
+
+  {profile_block}
+
+  {anti_script_rules}
+
+human: |
+  Conversation so far:
+  {transcript}
+
+  Now move the interview forward. Your goal for this next question:
+  INTENT: {topic_intent}
+
+  Phrase a single, natural question that gets at this intent. React to what the
+  applicant just said where it feels human (a brief acknowledgement is fine).
+  Remember: only the spoken words.

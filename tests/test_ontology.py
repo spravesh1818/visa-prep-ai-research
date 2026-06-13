@@ -28,3 +28,10 @@ def test_topics_have_intents_and_unique_ids():
     ids = [t.id for t in o.topics]
     assert len(ids) == len(set(ids))
     assert all(t.intent.strip() for t in o.topics)
+
+
+def test_ontologies_define_timezone():
+    uk = load_ontology("UK", "Student")
+    us = load_ontology("US", "F1")
+    assert uk.timezone == "Europe/London"
+    assert us.timezone == "America/New_York"

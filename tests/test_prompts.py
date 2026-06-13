@@ -18,6 +18,20 @@ def test_greeting_prompt_varies_across_calls():
     assert len(seen) > 1
 
 
+def test_greeting_includes_time_context():
+    ontology = load_ontology("UK", "Student")
+    messages = greeting_messages(
+        ontology.officer_persona,
+        ontology.display_name,
+        None,
+        timezone=ontology.timezone,
+    )
+    human = _human(messages).lower()
+    assert "europe/london" in human
+    assert "local time" in human
+    assert "time_of_day" not in human  # placeholder should be rendered
+
+
 def test_closing_prompt_varies_and_hides_decision():
     ontology = load_ontology("US", "F1")
     seen = {

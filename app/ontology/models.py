@@ -11,6 +11,7 @@ from __future__ import annotations
 from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 class OfficerPersona(BaseModel):
@@ -77,9 +78,22 @@ class Ontology(BaseModel):
     visa_type: str
     display_name: str
     description: str = ""
+    timezone: str = Field(
+        default="UTC",
+        description="IANA timezone for the consular window (e.g. Europe/London).",
+    )
     officer_persona: OfficerPersona = Field(default_factory=OfficerPersona)
     topics: list[Topic]
     consistency_rules: list[ConsistencyRule] = Field(default_factory=list)
+
+    @field_validator("timezone")
+    @classmethod
+    def _valid_timezone(cls, value: str) -> str:
+        try:
+            ZoneInfo(value)
+        except ZoneInfoNotFoundError as exc:
+            raise ValueError(f"Invalid IANA timezone: {value!r}") from exc
+        return value
 
     @field_validator("topics")
     @classmethod

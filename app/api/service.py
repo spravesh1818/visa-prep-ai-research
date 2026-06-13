@@ -12,6 +12,8 @@ import uuid
 from typing import Any, Optional
 
 from langchain_core.messages import BaseMessage
+
+from app.llm.content import content_text
 from langgraph.types import Command
 
 from app.config import get_settings
@@ -38,7 +40,7 @@ def _trailing_officer_message(messages: list[BaseMessage]) -> str:
     collected: list[str] = []
     for m in reversed(messages):
         if m.type == "ai":
-            collected.append(str(m.content))
+            collected.append(content_text(m.content))
         else:
             break
     return "\n\n".join(reversed(collected)).strip()

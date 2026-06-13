@@ -6,6 +6,8 @@ description: >
   genuine student, has the means to pay, and has strong ties / intent to return
   home after studies (non-immigrant intent).
 
+timezone: Asia/Kathmandu
+
 officer_persona:
   name: U.S. Consular Officer
   tone: professional, brisk, courteous, quietly skeptical

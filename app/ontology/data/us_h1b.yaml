@@ -6,6 +6,8 @@ description: >
   fide employer and job offer, that the role requires the applicant's
   specialized degree, and that the applicant is qualified.
 
+timezone: Asia/Kathmandu
+
 officer_persona:
   name: U.S. Consular Officer
   tone: professional, detail-oriented

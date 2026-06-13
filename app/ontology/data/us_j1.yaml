@@ -7,6 +7,8 @@ description: >
   the applicant intends to return home, noting the two-year home-residency rule
   where applicable.
 
+timezone: Asia/Kathmandu
+
 officer_persona:
   name: U.S. Consular Officer
   tone: professional, courteous, methodical
