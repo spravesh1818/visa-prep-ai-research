@@ -1,0 +1,50 @@
+# HTTP-only bootstrap config — use BEFORE Let's Encrypt certificates exist.
+# Rename or swap to app.conf after running init-ssl.sh
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${APP_DOMAIN};
+
+    # Certbot ACME HTTP-01 challenge
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # API (FastAPI)
+    location = /health {
+        proxy_pass http://api:8000/health;
+        include /etc/nginx/snippets/proxy-params.conf;
+    }
+
+    location /config {
+        proxy_pass http://api:8000/config;
+        include /etc/nginx/snippets/proxy-params.conf;
+    }
+
+    location /docs {
+        proxy_pass http://api:8000/docs;
+        include /etc/nginx/snippets/proxy-params.conf;
+    }
+
+    location /openapi.json {
+        proxy_pass http://api:8000/openapi.json;
+        include /etc/nginx/snippets/proxy-params.conf;
+    }
+
+    location /voice/ {
+        proxy_pass http://api:8000/voice/;
+        include /etc/nginx/snippets/proxy-params.conf;
+    }
+
+    location /interview/ {
+        proxy_pass http://api:8000/interview/;
+        include /etc/nginx/snippets/proxy-params.conf;
+    }
+
+    # Frontend SPA (internal nginx container)
+    location / {
+        proxy_pass http://frontend:80;
+        include /etc/nginx/snippets/proxy-params.conf;
+    }
+}

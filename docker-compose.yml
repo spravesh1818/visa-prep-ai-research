@@ -1,0 +1,139 @@
+# Production stack for visa-prep-ai-research
+# Usage:
+#   cp .env.production.example .env   # fill in secrets + APP_DOMAIN
+#   docker compose build
+#   docker compose up -d
+#   ./deploy/scripts/init-ssl.sh      # first-time Let's Encrypt
+#   docker compose --profile voice up -d   # optional voice worker
+
+name: visa-prep
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: visa-prep-api:latest
+    container_name: visa-prep-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      SQLITE_PATH: /data/interview_sessions.db
+      CHECKPOINTER_BACKEND: sqlite
+    volumes:
+      - session-data:/data
+    expose:
+      - "8000"
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  voice-agent:
+    profiles: ["voice"]
+    image: visa-prep-api:latest
+    container_name: visa-prep-voice-agent
+    restart: unless-stopped
+    command: ["uv", "run", "python", "-m", "app.voice.agent", "start"]
+    env_file:
+      - .env
+    environment:
+      SQLITE_PATH: /data/interview_sessions.db
+      CHECKPOINTER_BACKEND: sqlite
+    volumes:
+      - session-data:/data
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - app
+    # LiveKit worker has no HTTP port; liveness = process running
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'app.voice.agent' || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE: ""
+    image: visa-prep-frontend:latest
+    container_name: visa-prep-frontend
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: visa-prep-nginx
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+      # app-http.conf.template (bootstrap) | app-https.conf.template (after SSL)
+      NGINX_TEMPLATE: ${NGINX_TEMPLATE:-/etc/nginx/templates/app-http.conf.template}
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/templates:/etc/nginx/templates:ro
+      - ./deploy/nginx/snippets:/etc/nginx/snippets:ro
+      - ./deploy/nginx/docker-entrypoint.sh:/docker-entrypoint.sh:ro
+      - certbot-www:/var/www/certbot
+      - certbot-conf:/etc/letsencrypt
+    entrypoint: ["/bin/sh", "/docker-entrypoint.sh"]
+    networks:
+      - app
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: visa-prep-certbot
+    restart: unless-stopped
+    volumes:
+      - certbot-www:/var/www/certbot
+      - certbot-conf:/etc/letsencrypt
+    # Auto-renew twice daily; nginx picks up renewed certs on container restart
+    entrypoint: >
+      /bin/sh -c "trap exit TERM;
+      while :; do
+        certbot renew --quiet --webroot -w /var/www/certbot;
+        sleep 12h & wait $${!};
+      done"
+    networks:
+      - app
+
+networks:
+  app:
+    driver: bridge
+
+volumes:
+  session-data:
+    driver: local
+  certbot-www:
+    driver: local
+  certbot-conf:
+    driver: local

@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+.env.*
+!.env.example
+!.env.production.example
+*.md
+.git
+.vscode
+.idea
+.DS_Store
+tsconfig.tsbuildinfo

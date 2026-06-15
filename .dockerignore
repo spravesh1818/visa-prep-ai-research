@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Python
+.venv
+__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
+htmlcov
+.coverage
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Session databases (mounted as volume in production)
+*.db
+*.db-shm
+*.db-wal
+
+# Frontend (built in its own image)
+frontend/node_modules
+frontend/dist
+frontend/.env
+
+# Docs and dev tooling
+tests
+scripts
+*.md
+!DEPLOYMENT.md
+
+# IDE
+.vscode
+.idea
+.cursor
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Deploy artifacts
+deploy/certbot
