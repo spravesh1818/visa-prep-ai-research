@@ -4,7 +4,6 @@ server {
     listen 80;
     server_name ${APP_DOMAIN};
 
-    # Docker embedded DNS — resolve upstreams at request time (not nginx startup).
     resolver 127.0.0.11 valid=30s ipv6=off;
     set $upstream_api api:8000;
     set $upstream_frontend frontend:80;
@@ -13,33 +12,34 @@ server {
         root /var/www/certbot;
     }
 
+    # API routes — $request_uri required when proxy_pass uses variables.
     location = /health {
-        proxy_pass http://$upstream_api/health;
+        proxy_pass http://$upstream_api$request_uri;
         include /etc/nginx/snippets/proxy-params.conf;
     }
 
     location /config {
-        proxy_pass http://$upstream_api/config;
+        proxy_pass http://$upstream_api$request_uri;
         include /etc/nginx/snippets/proxy-params.conf;
     }
 
     location /docs {
-        proxy_pass http://$upstream_api/docs;
+        proxy_pass http://$upstream_api$request_uri;
         include /etc/nginx/snippets/proxy-params.conf;
     }
 
     location /openapi.json {
-        proxy_pass http://$upstream_api/openapi.json;
+        proxy_pass http://$upstream_api$request_uri;
         include /etc/nginx/snippets/proxy-params.conf;
     }
 
     location /voice/ {
-        proxy_pass http://$upstream_api/voice/;
+        proxy_pass http://$upstream_api$request_uri;
         include /etc/nginx/snippets/proxy-params.conf;
     }
 
     location /interview/ {
-        proxy_pass http://$upstream_api/interview/;
+        proxy_pass http://$upstream_api$request_uri;
         include /etc/nginx/snippets/proxy-params.conf;
     }
 
