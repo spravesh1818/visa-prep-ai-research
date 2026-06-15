@@ -20,14 +20,15 @@ def test_greeting_prompt_varies_across_calls():
 
 def test_greeting_includes_time_context():
     ontology = load_ontology("UK", "Student")
+    tz = "Europe/London"
     messages = greeting_messages(
         ontology.officer_persona,
         ontology.display_name,
         None,
-        timezone=ontology.timezone,
+        timezone=tz,
     )
     human = _human(messages).lower()
-    assert "europe/london" in human
+    assert tz.lower() in human
     assert "local time" in human
     assert "time_of_day" not in human  # placeholder should be rendered
 

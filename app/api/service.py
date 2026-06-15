@@ -37,13 +37,25 @@ def _trailing_officer_message(messages: list[BaseMessage]) -> str:
     normal turn it is just the single next question or probe.
     """
 
+    return "\n\n".join(_trailing_officer_utterances(messages)).strip()
+
+
+def _trailing_officer_utterances(messages: list[BaseMessage]) -> list[str]:
+    """Return trailing officer messages separately (e.g. greeting, then question)."""
+
     collected: list[str] = []
     for m in reversed(messages):
         if m.type == "ai":
             collected.append(content_text(m.content))
         else:
             break
-    return "\n\n".join(reversed(collected)).strip()
+    return list(reversed(collected))
+
+
+def _officer_utterances_from_text(text: str) -> list[str]:
+    from app.voice.utterances import split_officer_utterances
+
+    return split_officer_utterances(text)
 
 
 def _officer_message_from_result(result: dict[str, Any]) -> str:
@@ -65,16 +77,21 @@ def _officer_message_from_result(result: dict[str, Any]) -> str:
 def _shape_turn(session_id: str, result: dict[str, Any]) -> dict[str, Any]:
     status = result.get("status")
     if status == STATUS_COMPLETED:
+        closing = result.get("closing_message") or (
+            "Thank you for your time. That concludes the interview."
+        )
         return {
             "session_id": session_id,
-            "officer_message": result.get("closing_message")
-            or "Thank you for your time. That concludes the interview.",
+            "officer_message": closing,
+            "officer_utterances": _officer_utterances_from_text(closing),
             "status": STATUS_COMPLETED,
             "report_available": True,
         }
+    officer_message = _officer_message_from_result(result)
     return {
         "session_id": session_id,
-        "officer_message": _officer_message_from_result(result),
+        "officer_message": officer_message,
+        "officer_utterances": _officer_utterances_from_text(officer_message),
         "status": STATUS_AWAITING,
         "report_available": False,
     }
@@ -117,8 +134,22 @@ def respond(session_id: str, message: str) -> dict[str, Any]:
     return _shape_turn(session_id, result)
 
 
+def respond_voice(session_id: str, message: str) -> dict[str, Any]:
+    """Voice-optimized turn: one speak-path LLM call; evaluation runs in background."""
+
+    from app.voice.fast_turn import respond_voice_fast
+
+    return respond_voice_fast(session_id, message)
+
+
 def get_report(session_id: str) -> dict[str, Any]:
     """Return the report (if ready) and current status for a session."""
+
+    settings = get_settings()
+    if settings.voice_fast_mode:
+        from app.voice.fast_turn import flush_pending_eval
+
+        flush_pending_eval(session_id)
 
     graph = get_interview_graph()
     snapshot = graph.get_state(_config(session_id))

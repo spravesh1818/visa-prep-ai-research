@@ -29,12 +29,22 @@ export function InterviewRoom({ token, onLeave }: Props) {
       audio
       video={false}
       onDisconnected={onLeave}
-      className="room"
+      className="min-h-screen bg-canvas"
     >
       <RoomAudioRenderer />
       <RoomInner onLeave={onLeave} />
     </LiveKitRoom>
   );
+}
+
+function statusLabel(status: string): string {
+  return status.replace(/_/g, " ");
+}
+
+function statusColorClass(status: string): string {
+  if (status === "completed") return "text-success";
+  if (status === "officer_speaking") return "text-info";
+  return "text-mute";
 }
 
 function RoomInner({ onLeave }: { onLeave: () => void }) {
@@ -66,6 +76,13 @@ function RoomInner({ onLeave }: { onLeave: () => void }) {
         });
       }
       flush();
+
+      if (!isLocal && segments.length > 0) {
+        const anyInterim = segments.some((s) => !s.final);
+        setStatus(anyInterim ? "officer_speaking" : "awaiting_you");
+      } else if (isLocal && segments.some((s) => !s.final)) {
+        setStatus("listening");
+      }
     }
 
     function onData(payload: Uint8Array, _p?: Participant, _k?: unknown, topic?: string) {
@@ -74,7 +91,7 @@ function RoomInner({ onLeave }: { onLeave: () => void }) {
         const msg = JSON.parse(new TextDecoder().decode(payload));
         if (msg.type === "session" && msg.session_id) {
           setSessionId(msg.session_id);
-          setStatus("in_progress");
+          setStatus("awaiting_you");
         }
       } catch {
         /* ignore malformed data */
@@ -89,7 +106,6 @@ function RoomInner({ onLeave }: { onLeave: () => void }) {
     };
   }, [room, localParticipant, flush]);
 
-  // Poll for the final report once we know the session id.
   useEffect(() => {
     if (!sessionId || report) return;
     let active = true;
@@ -122,34 +138,52 @@ function RoomInner({ onLeave }: { onLeave: () => void }) {
   }
 
   return (
-    <div className="page room-layout">
-      <header className="room-header">
+    <div className="mx-auto max-w-[1100px] px-5 py-8 pb-16">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-hairline pb-6">
         <div>
-          <h2>Interview in progress</h2>
-          <span className={`status status-${status}`}>{status.replace("_", " ")}</span>
+          <h2 className="text-2xl font-medium text-ink">Interview in progress</h2>
+          <span
+            className={`mt-1 inline-block text-sm capitalize ${statusColorClass(status)}`}
+          >
+            {statusLabel(status)}
+          </span>
         </div>
-        <div className="controls">
-          <button className={isMicrophoneEnabled ? "mic on" : "mic off"} onClick={toggleMic}>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            className={`h-12 rounded-pill px-6 text-sm font-medium transition active:scale-[0.98] ${
+              isMicrophoneEnabled
+                ? "bg-sale text-white"
+                : "bg-success text-white"
+            }`}
+            onClick={toggleMic}
+          >
             {isMicrophoneEnabled ? "Mute mic" : "Unmute mic"}
           </button>
-          <button className="ghost" onClick={leave}>
+          <button
+            type="button"
+            className="h-12 rounded-pill border border-hairline bg-soft-cloud px-6 text-sm font-medium text-ink transition active:scale-[0.98]"
+            onClick={leave}
+          >
             End interview
           </button>
         </div>
       </header>
 
-      <div className="room-body">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
         <Transcript lines={lines} />
         {report ? (
           <ReportView report={report} />
         ) : (
-          <aside className="card report-pending">
-            <h3>Report</h3>
-            <p>
+          <aside className="border border-hairline bg-soft-cloud p-6">
+            <h3 className="mb-3 text-xl font-medium text-ink">Report</h3>
+            <p className="text-sm leading-relaxed text-charcoal">
               The scored report will appear here automatically once the interview
-              concludes.
+              concludes. The transcript will include question types and probe tags.
             </p>
-            {sessionId && <p className="hint">Session: {sessionId}</p>}
+            {sessionId && (
+              <p className="mt-4 text-xs text-mute">Session: {sessionId}</p>
+            )}
           </aside>
         )}
       </div>

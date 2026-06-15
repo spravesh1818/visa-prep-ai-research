@@ -29,6 +29,7 @@ from app.config import get_settings
 from app.observability import configure_langsmith
 from app.voice.cost import compute_voice_costs, push_voice_costs_to_langsmith
 from app.voice.interview_llm import InterviewLLM
+from app.voice.timing import VoiceTimer
 
 logger = logging.getLogger("visa-voice-agent")
 
@@ -120,10 +121,13 @@ async def entrypoint(ctx: JobContext) -> None:
     visa_type = meta.get("visa_type") or settings.voice_default_visa_type
     profile = meta.get("candidate_profile")
 
-    # Start the ontology-driven interview; this yields the greeting + first Q.
-    turn = await asyncio.to_thread(service.start_interview, country, visa_type, profile)
+    # Start the ontology-driven interview; greeting + first question as separate lines.
+    timer = VoiceTimer("pending")
+    with timer.phase("start_interview"):
+        turn = await asyncio.to_thread(service.start_interview, country, visa_type, profile)
     session_id = turn["session_id"]
-    greeting = turn["officer_message"]
+    timer = VoiceTimer(session_id)
+    utterances = turn.get("officer_utterances") or [turn["officer_message"]]
     logger.info("Voice interview %s started (%s %s)", session_id, country, visa_type)
 
     # Tell the frontend which session to poll for the final report.
@@ -143,11 +147,14 @@ async def entrypoint(ctx: JobContext) -> None:
                 "min_delay": settings.voice_min_endpointing_delay,
                 "max_delay": settings.voice_max_endpointing_delay,
             },
-            preemptive_generation={"enabled": False},
+            preemptive_generation={"enabled": True},
         ),
     )
 
     async def _emit_costs(_reason: str = "") -> None:
+        from app.voice.fast_turn import flush_pending_eval
+
+        flush_pending_eval(session_id)
         duration = time.monotonic() - started_at
         breakdown = compute_voice_costs(session_id, session.usage, duration)
         await asyncio.to_thread(push_voice_costs_to_langsmith, breakdown)
@@ -168,8 +175,11 @@ async def entrypoint(ctx: JobContext) -> None:
     agent = Agent(instructions="You are a consular visa interview officer.")
     await session.start(agent=agent, room=ctx.room)
 
-    # Speak the dynamically generated greeting + first question.
-    await session.say(greeting, allow_interruptions=True)
+    timer.mark("session_started")
+    for i, line in enumerate(utterances):
+        timer.mark("tts_start", part=i + 1, total=len(utterances))
+        await session.say(line, allow_interruptions=True)
+    timer.mark("opening_spoken")
 
 
 def main() -> None:

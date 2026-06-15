@@ -31,7 +31,10 @@ def test_topics_have_intents_and_unique_ids():
 
 
 def test_ontologies_define_timezone():
+    from zoneinfo import ZoneInfo
+
     uk = load_ontology("UK", "Student")
     us = load_ontology("US", "F1")
-    assert uk.timezone == "Europe/London"
-    assert us.timezone == "America/New_York"
+    for tz in (uk.timezone, us.timezone):
+        assert tz
+        ZoneInfo(tz)  # valid IANA

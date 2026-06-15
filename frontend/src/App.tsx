@@ -53,33 +53,44 @@ export default function App() {
   }
 
   return (
-    <div className="page">
-      <header className="hero">
-        <h1>Visa Interview — Voice</h1>
-        <p className="subtitle">
+    <div className="mx-auto max-w-[1100px] px-5 py-8 pb-16">
+      <header className="mb-section">
+        <h1 className="text-[2rem] font-medium leading-tight text-ink md:text-[2.5rem]">
+          Visa Interview — Voice
+        </h1>
+        <p className="mt-3 max-w-xl text-base leading-relaxed text-mute">
           A realistic, ontology-driven mock visa interview. Speak naturally; the
           officer will probe your answers and produce a scored report.
         </p>
       </header>
 
-      {error && <div className="banner error">{error}</div>}
+      {error && (
+        <div className="mb-6 border border-sale/30 bg-sale/10 px-4 py-3 text-sm text-sale-deep">
+          {error}
+        </div>
+      )}
 
-      {!config && !error && <div className="banner">Loading configuration…</div>}
+      {!config && !error && (
+        <div className="border border-hairline bg-soft-cloud px-4 py-3 text-sm text-charcoal">
+          Loading configuration…
+        </div>
+      )}
 
       {config && (
-        <div className="card setup">
+        <div className="mt-6 max-w-md border border-hairline bg-canvas p-6">
           {!config.voice_enabled && (
-            <div className="banner warn">
+            <div className="mb-6 border border-amber-500/30 bg-amber-50 px-4 py-3 text-sm text-amber-900">
               Voice is not configured on the backend. Set LiveKit, Deepgram, and
               ElevenLabs keys to enable the live interview.
             </div>
           )}
 
-          <label className="field">
-            <span>Interview type</span>
+          <label className="mb-6 flex flex-col gap-2 text-sm font-medium text-mute">
+            Interview type
             <select
               value={selected}
               onChange={(e) => setSelected(e.target.value)}
+              className="h-12 rounded-search border border-hairline bg-soft-cloud px-4 text-base font-normal text-ink outline-none focus:border-ink focus:ring-2 focus:ring-soft-cloud"
             >
               {config.supported_interviews.map((o) => (
                 <option key={interviewKey(o)} value={interviewKey(o)}>
@@ -90,14 +101,15 @@ export default function App() {
           </label>
 
           <button
-            className="primary"
+            type="button"
+            className="h-12 w-full rounded-pill bg-ink px-8 text-base font-medium text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             disabled={!config.voice_enabled || connecting || !selected}
             onClick={startInterview}
           >
             {connecting ? "Connecting…" : "Start voice interview"}
           </button>
 
-          <p className="hint">
+          <p className="mt-4 text-xs text-mute">
             Active model: {String((config.llm as { model?: string }).model ?? "—")} ·
             Backend checkpointer: {config.checkpointer_backend}
           </p>

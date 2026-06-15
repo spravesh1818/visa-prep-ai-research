@@ -70,6 +70,12 @@ def initialize(state: InterviewState) -> dict[str, Any]:
     }
 
 
+def _officer_message(content: str, **kwargs: Any) -> AIMessage:
+    """Create an officer AIMessage with turn metadata for the report transcript."""
+
+    return AIMessage(content=content, additional_kwargs=kwargs)
+
+
 def greet(state: InterviewState) -> dict[str, Any]:
     """Officer delivers a natural, varied opening greeting."""
 
@@ -83,7 +89,7 @@ def greet(state: InterviewState) -> dict[str, Any]:
             timezone=ontology.timezone,
         )
     )
-    return {"messages": [AIMessage(content=llm_text(msg))]}
+    return {"messages": [_officer_message(llm_text(msg), turn_kind="greeting")]}
 
 
 def ask_question(state: InterviewState) -> dict[str, Any]:
@@ -101,7 +107,16 @@ def ask_question(state: InterviewState) -> dict[str, Any]:
             state.get("candidate_profile"),
         )
     )
-    return {"messages": [AIMessage(content=llm_text(msg))]}
+    return {
+        "messages": [
+            _officer_message(
+                llm_text(msg),
+                turn_kind="question",
+                topic_id=topic.id,
+                topic_label=topic.label,
+            )
+        ]
+    }
 
 
 def await_answer(state: InterviewState) -> dict[str, Any]:
@@ -188,7 +203,15 @@ def probe(state: InterviewState) -> dict[str, Any]:
         )
     )
     return {
-        "messages": [AIMessage(content=llm_text(msg))],
+        "messages": [
+            _officer_message(
+                llm_text(msg),
+                turn_kind="probe",
+                topic_id=topic.id,
+                topic_label=topic.label,
+                is_probe=True,
+            )
+        ],
         "probe_count": state.get("probe_count", 0) + 1,
     }
 
@@ -218,6 +241,7 @@ def finalize(state: InterviewState) -> dict[str, Any]:
     narrative = _generate_narrative(ontology.display_name, scored_summary, _messages(state))
     probing_summary = _summarize_probing(scores["topic_results"])
     closing = _generate_closing(ontology, _messages(state))
+    closing_message = _officer_message(closing, turn_kind="closing")
 
     report = InterviewReport(
         session_id=state.get("session_id", ""),
@@ -236,7 +260,7 @@ def finalize(state: InterviewState) -> dict[str, Any]:
         coaching_signal=scores["coaching_signal"],
         university_assessment=university,
         probing_summary=probing_summary,
-        transcript=_render_transcript(_messages(state)),
+        transcript=_render_transcript(_messages(state) + [closing_message]),
         model_info=state.get("model_info", {}),
         disclaimer=DISCLAIMER,
     )
@@ -245,7 +269,7 @@ def finalize(state: InterviewState) -> dict[str, Any]:
         "status": "completed",
         "report": report.model_dump(),
         "closing_message": closing,
-        "messages": [AIMessage(content=closing)],
+        "messages": [closing_message],
     }
 
 
@@ -317,9 +341,28 @@ def _summarize_probing(topic_results: list[Any]) -> str:
     return "Follow-up probing was triggered on: " + ", ".join(parts) + "."
 
 
-def _render_transcript(messages: list[BaseMessage]) -> list[dict[str, str]]:
-    transcript = []
+def _render_transcript(messages: list[BaseMessage]) -> list[dict[str, Any]]:
+    from app.interview.report import TranscriptEntry
+
+    transcript: list[dict[str, Any]] = []
     for m in messages:
         role = "officer" if m.type == "ai" else "applicant"
-        transcript.append({"role": role, "content": llm_text(m)})
+        content = llm_text(m.content)
+        if role == "applicant":
+            transcript.append(
+                TranscriptEntry(role="applicant", content=content).model_dump()
+            )
+            continue
+
+        meta = getattr(m, "additional_kwargs", None) or {}
+        transcript.append(
+            TranscriptEntry(
+                role="officer",
+                content=content,
+                turn_kind=meta.get("turn_kind"),
+                topic_id=meta.get("topic_id"),
+                topic_label=meta.get("topic_label"),
+                is_probe=bool(meta.get("is_probe", False)),
+            ).model_dump()
+        )
     return transcript

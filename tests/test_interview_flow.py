@@ -44,6 +44,12 @@ def test_full_interview_produces_report(fake_llm):
     assert report["transcript"]
     assert report["disclaimer"]
 
+    officer_turns = [t for t in report["transcript"] if t["role"] == "officer"]
+    turn_kinds = {t.get("turn_kind") for t in officer_turns}
+    assert "greeting" in turn_kinds
+    assert "question" in turn_kinds
+    assert "closing" in turn_kinds
+
 
 def test_greeting_then_first_question_on_start(fake_llm):
     turn = service.start_interview("UK", "Student", None)
@@ -78,6 +84,14 @@ def test_probing_triggers_followup(fake_llm):
     report = service.get_report(session_id)["report"]
     probes = sum(t["probes_used"] for t in report["topic_results"])
     assert probes >= 1
+
+    probe_turns = [
+        t
+        for t in report["transcript"]
+        if t.get("role") == "officer" and t.get("turn_kind") == "probe"
+    ]
+    assert len(probe_turns) >= 1
+    assert probe_turns[0].get("is_probe") is True
 
 
 def test_unknown_session_raises():

@@ -35,6 +35,17 @@ export interface UniversityAssessment {
   rationale?: string;
 }
 
+export type TurnKind = "greeting" | "question" | "probe" | "closing";
+
+export interface TranscriptEntry {
+  role: "officer" | "applicant";
+  content: string;
+  turn_kind?: TurnKind | null;
+  topic_id?: string | null;
+  topic_label?: string | null;
+  is_probe?: boolean;
+}
+
 export interface InterviewReport {
   session_id: string;
   country: string;
@@ -52,7 +63,7 @@ export interface InterviewReport {
   coaching_signal?: string;
   university_assessment?: UniversityAssessment | null;
   probing_summary?: string;
-  transcript: { role: string; content: string }[];
+  transcript: TranscriptEntry[];
   model_info: Record<string, unknown>;
   disclaimer: string;
 }

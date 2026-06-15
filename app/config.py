@@ -83,9 +83,13 @@ class Settings(BaseSettings):
     livekit_api_secret: Optional[str] = None
     deepgram_api_key: Optional[str] = None
     deepgram_model: str = "nova-3"
-    deepgram_endpointing_ms: int = Field(default=400, ge=0)
-    voice_min_endpointing_delay: float = Field(default=1.2, ge=0.0)
-    voice_max_endpointing_delay: float = Field(default=6.0, ge=0.0)
+    deepgram_endpointing_ms: int = Field(default=300, ge=0)
+    voice_min_endpointing_delay: float = Field(default=0.6, ge=0.0)
+    voice_max_endpointing_delay: float = Field(default=3.0, ge=0.0)
+    voice_fast_mode: bool = Field(
+        default=True,
+        description="Voice: one interviewer LLM per turn; async evaluation.",
+    )
     elevenlabs_api_key: Optional[str] = None
     elevenlabs_voice_id: Optional[str] = None
     elevenlabs_model: str = "eleven_turbo_v2_5"

@@ -208,7 +208,28 @@ Each ontology YAML (`app/ontology/data/*.yaml`) may define `timezone` (IANA,
 e.g. `Europe/London`, `America/New_York`). The officer greeting uses the local
 time at that consular window so "good morning" matches the actual time of day.
 
-## Voice interview (LiveKit + Deepgram + ElevenLabs)
+## Voice latency tuning
+
+The voice agent is optimized for responsiveness:
+
+- `VOICE_FAST_MODE=true` (default) — one interviewer LLM call per spoken turn;
+  structured evaluation runs in a background thread so TTS starts sooner.
+  Probing triggered by evaluation applies on the **next** officer turn.
+- `VOICE_MIN_ENDPOINTING_DELAY` / `VOICE_MAX_ENDPOINTING_DELAY` — how long
+  to wait after you stop speaking (defaults `0.6` / `3.0` seconds).
+- `DEEPGRAM_ENDPOINTING_MS` — STT silence detection (default `300`).
+- Use fast, stable models for voice (`gpt-4o-mini`, `gemini-2.5-flash`); avoid
+  overloaded preview models that return 503 retries.
+- Optional role split: `INTERVIEWER_MODEL` (creative) + `EVALUATOR_MODEL`
+  (cheap/deterministic).
+- Keep the voice worker running to avoid LiveKit cold starts.
+- Enable `LANGSMITH_TRACING=true` and search logs for `voice_timing` to see
+  phase durations (`start_interview`, `graph_done`, `tts_start`).
+
+Opening greeting and first question are spoken as **separate** TTS utterances
+(split on blank lines) so the first audio starts sooner.
+
+## Voice interview (LiveKit + Deepgram + Cartesia)
 
 The voice layer reuses the entire LangGraph brain (ontology, probing, university
 checks, scoring) via a custom LiveKit `LLM` adapter; only the I/O changes to
@@ -226,9 +247,10 @@ speech.
    ```
 
 Pick a visa type, click **Start voice interview**, and speak. The officer's
-greeting/questions are spoken (ElevenLabs), your answers are transcribed
-(Deepgram), live transcripts render in the UI, and the scored report appears
-automatically when the interview ends. See `frontend/README.md` for details.
+greeting/questions are spoken (Cartesia TTS by default), your answers are
+transcribed (Deepgram), live transcripts render in the UI, and the scored
+report appears automatically when the interview ends. See `frontend/README.md`
+for details.
 
 The text API and offline tests keep working without any voice keys.
 

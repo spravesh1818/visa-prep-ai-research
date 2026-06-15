@@ -12,6 +12,6 @@ human: |
   Now move the interview forward. Your goal for this next question:
   INTENT: {topic_intent}
 
-  Phrase a single, natural question that gets at this intent. React to what the
-  applicant just said where it feels human (a brief acknowledgement is fine).
-  Remember: only the spoken words.
+  Phrase a single, natural question that gets at this intent. Start with a very
+  brief acknowledgement of what they said when appropriate (a few words only).
+  One or two sentences total. Remember: only the spoken words.
