@@ -1,9 +1,7 @@
 # Production HTTPS config — active AFTER Let's Encrypt certificates are issued.
 
-# HTTP → HTTPS redirect (keeps ACME challenge path on port 80)
 server {
     listen 80;
-    listen [::]:80;
     server_name ${APP_DOMAIN};
 
     location /.well-known/acme-challenge/ {
@@ -17,14 +15,12 @@ server {
 
 server {
     listen 443 ssl;
-    listen [::]:443 ssl;
     http2 on;
     server_name ${APP_DOMAIN};
 
     ssl_certificate     /etc/letsencrypt/live/${APP_DOMAIN}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${APP_DOMAIN}/privkey.pem;
 
-    # Mozilla intermediate TLS settings (certbot may also install options-ssl-nginx.conf)
     ssl_session_timeout 1d;
     ssl_session_cache shared:SSL:10m;
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -34,40 +30,43 @@ server {
     add_header X-Frame-Options SAMEORIGIN always;
     add_header X-Content-Type-Options nosniff always;
 
-    # API (FastAPI)
+    # Docker embedded DNS — resolve upstreams at request time (not nginx startup).
+    resolver 127.0.0.11 valid=30s ipv6=off;
+    set $upstream_api api:8000;
+    set $upstream_frontend frontend:80;
+
     location = /health {
-        proxy_pass http://api:8000/health;
+        proxy_pass http://$upstream_api/health;
         include /etc/nginx/snippets/proxy-params.conf;
     }
 
     location /config {
-        proxy_pass http://api:8000/config;
+        proxy_pass http://$upstream_api/config;
         include /etc/nginx/snippets/proxy-params.conf;
     }
 
     location /docs {
-        proxy_pass http://api:8000/docs;
+        proxy_pass http://$upstream_api/docs;
         include /etc/nginx/snippets/proxy-params.conf;
     }
 
     location /openapi.json {
-        proxy_pass http://api:8000/openapi.json;
+        proxy_pass http://$upstream_api/openapi.json;
         include /etc/nginx/snippets/proxy-params.conf;
     }
 
     location /voice/ {
-        proxy_pass http://api:8000/voice/;
+        proxy_pass http://$upstream_api/voice/;
         include /etc/nginx/snippets/proxy-params.conf;
     }
 
     location /interview/ {
-        proxy_pass http://api:8000/interview/;
+        proxy_pass http://$upstream_api/interview/;
         include /etc/nginx/snippets/proxy-params.conf;
     }
 
-    # Frontend SPA
     location / {
-        proxy_pass http://frontend:80;
+        proxy_pass http://$upstream_frontend;
         include /etc/nginx/snippets/proxy-params.conf;
     }
 }

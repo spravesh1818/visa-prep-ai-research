@@ -14,4 +14,16 @@ fi
 envsubst '${APP_DOMAIN}' < "$TEMPLATE" > "$OUTPUT"
 echo "nginx entrypoint: rendered $TEMPLATE for domain ${APP_DOMAIN}"
 
+# Fail fast with a clear error if TLS files are missing.
+if grep -q 'ssl_certificate' "$OUTPUT"; then
+  CERT="/etc/letsencrypt/live/${APP_DOMAIN}/fullchain.pem"
+  KEY="/etc/letsencrypt/live/${APP_DOMAIN}/privkey.pem"
+  if [ ! -f "$CERT" ] || [ ! -f "$KEY" ]; then
+    echo "nginx entrypoint: missing TLS files:" >&2
+    echo "  $CERT" >&2
+    echo "  $KEY" >&2
+    exit 1
+  fi
+fi
+
 exec nginx -g 'daemon off;'
