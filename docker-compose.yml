@@ -1,12 +1,12 @@
 # Production stack for visa-prep-ai-research
 # Usage:
 #   cp .env.production.example .env   # fill in secrets + APP_DOMAIN
-#   docker compose build
-#   docker compose up -d
+#   docker-compose build              # or: docker compose build
+#   docker-compose up -d
 #   ./deploy/scripts/init-ssl.sh      # first-time Let's Encrypt
-#   docker compose --profile voice up -d   # optional voice worker
+#   docker-compose --profile voice up -d   # optional voice worker
 
-name: visa-prep
+version: "3.9"
 
 services:
   api:
