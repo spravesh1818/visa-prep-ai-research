@@ -26,9 +26,19 @@ set -a && source .env && set +a
 : "${APP_DOMAIN:?Set APP_DOMAIN in .env}"
 : "${CERTBOT_EMAIL:?Set CERTBOT_EMAIL in .env}"
 
+# Pick docker-compose v1 or compose v2 plugin.
+if docker compose version >/dev/null 2>&1; then
+  DC="docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+  DC="docker-compose"
+else
+  echo "Neither 'docker compose' nor 'docker-compose' found." >&2
+  exit 1
+fi
+
 echo "Requesting certificate for ${APP_DOMAIN} ..."
 
-docker compose run --rm certbot certonly \
+$DC run --rm certbot certonly \
   --webroot \
   -w /var/www/certbot \
   -d "${APP_DOMAIN}" \
@@ -47,7 +57,7 @@ else
   echo 'NGINX_TEMPLATE=/etc/nginx/templates/app-https.conf.template' >> .env
 fi
 
-docker compose up -d nginx
+$DC up -d nginx
 
 echo ""
 echo "Done. Visit https://${APP_DOMAIN}"
